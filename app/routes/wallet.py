@@ -1,14 +1,30 @@
 import json
 import uuid
 
+import requests
 from flask import Blueprint, g, jsonify, request
 
 from app import ledger
 from app.auth import require_auth
 from app.config import config
-from app.flutterwave_client import FlutterwaveError, flutterwave
+from app.flutterwave_client import PROXIES, FlutterwaveError, flutterwave
 
 wallet_bp = Blueprint("wallet", __name__, url_prefix="/wallet")
+
+
+@wallet_bp.get("/debug-ip")
+def debug_egress_ip():
+    """Temporary debug route: reports the IP this server actually uses for
+    outbound requests (routed through PROXIES if configured), i.e. the IP
+    Flutterwave sees and checks against its whitelist. Delete this route
+    once IP whitelisting is sorted out — it has no auth and is not meant
+    to stay in production.
+    """
+    try:
+        resp = requests.get("https://api.ipify.org?format=json", timeout=10, proxies=PROXIES)
+        return jsonify(outbound_ip=resp.json().get("ip"), via_proxy=bool(PROXIES)), 200
+    except Exception as exc:
+        return jsonify(error=str(exc)), 500
 
 
 def _debit_and_transfer(*, entry_kind: str, transfer_type: str):
