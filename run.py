@@ -1,40 +1,13 @@
-from flask import Flask, jsonify
+import os
 
-from app.config import config
-from app.routes.deposit import deposit_bp
-from app.routes.reserve import reserve_bp
-from app.routes.wallet import wallet_bp
-from app.routes.webhooks import webhooks_bp
+from dotenv import load_dotenv
 
+load_dotenv()
 
-def create_app():
-    app = Flask(__name__)
+from app import create_app
 
-    _apply_cors(app)
+app = create_app()
 
-    app.register_blueprint(deposit_bp)
-    app.register_blueprint(webhooks_bp)
-    app.register_blueprint(wallet_bp)
-    app.register_blueprint(reserve_bp)
-
-    @app.get("/health")
-    def health():
-        return jsonify(status="ok")
-
-    return app
-
-
-def _apply_cors(app):
-    @app.after_request
-    def add_cors_headers(resp):
-        resp.headers["Access-Control-Allow-Origin"] = "*"
-        resp.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
-        resp.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        return resp
-
-    @app.before_request
-    def handle_preflight():
-        from flask import request
-
-        if request.method == "OPTIONS":
-            return "", 204
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
