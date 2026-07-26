@@ -38,6 +38,8 @@ def flutterwave_webhook():
     print("data payload :", data)
 
     if not webhook_id or not event_type:
+        # Malformed but signed request — acknowledge so Flutterwave doesn't
+        # retry forever, but don't process it.
         return jsonify(status="ignored", reason="malformed_payload"), 200
 
     supabase = get_supabase()
