@@ -32,14 +32,12 @@ def flutterwave_webhook():
         return jsonify(error="invalid_signature"), 401
 
     payload = request.get_json(silent=True) or {}
-    webhook_id = payload.get("id")
+    webhook_id = payload.get("webhook_id") or payload.get("id")
     event_type = payload.get("type")
     data = payload.get("data", {})
     print("data payload :", data)
 
     if not webhook_id or not event_type:
-        # Malformed but signed request — acknowledge so Flutterwave doesn't
-        # retry forever, but don't process it.
         return jsonify(status="ignored", reason="malformed_payload"), 200
 
     supabase = get_supabase()
