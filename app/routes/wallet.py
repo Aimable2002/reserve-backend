@@ -7,7 +7,16 @@ from flask import Blueprint, g, jsonify, request
 from app import ledger
 from app.auth import require_auth
 from app.config import config
-from app.flutterwave_client import PROXIES, FlutterwaveError, flutterwave
+from app.flutterwave_client import FlutterwaveError, flutterwave
+
+# PROXIES only exists in flutterwave_client.py if the QuotaGuard/proxy support
+# change has been deployed. Since that's not guaranteed, fall back to None
+# (meaning: no proxy, request goes out on whatever IP the server currently has)
+# so this file works against either version of flutterwave_client.py.
+try:
+    from app.flutterwave_client import PROXIES
+except ImportError:
+    PROXIES = None
 
 wallet_bp = Blueprint("wallet", __name__, url_prefix="/wallet")
 
