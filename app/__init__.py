@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 
 from app.config import config
 from app.routes.deposit import deposit_bp
+from app.routes.pay import pay_bp
 from app.routes.reserve import reserve_bp
 from app.routes.wallet import wallet_bp
 from app.routes.webhooks import webhooks_bp
@@ -17,6 +18,7 @@ def create_app():
     app.register_blueprint(webhooks_bp)
     app.register_blueprint(wallet_bp)
     app.register_blueprint(reserve_bp)
+    app.register_blueprint(pay_bp)
 
     @app.get("/health")
     def health():
