@@ -23,7 +23,7 @@ def _debit_and_transfer(*, entry_kind: str, transfer_type: str):
 
     currency = body.get("currency", config.DEFAULT_CURRENCY)
     user_id = g.user_id
-    reference = f"{entry_kind[:3]}_{uuid.uuid4().hex}"
+    reference = f"{entry_kind[:3]}{uuid.uuid4().hex}"
 
     try:
         ledger.assert_sufficient_wallet_balance(user_id, amount)

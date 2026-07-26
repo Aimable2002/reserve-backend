@@ -38,7 +38,7 @@ def initiate_deposit():
         return jsonify(error="missing_customer"), 400
 
     currency = body.get("currency", config.DEFAULT_CURRENCY)
-    reference = f"dep_{uuid.uuid4().hex}"
+    reference = f"dep{uuid.uuid4().hex}"
     user_id = g.user_id
 
     ledger.record_pending_entry(
