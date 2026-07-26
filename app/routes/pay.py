@@ -23,7 +23,16 @@ def _generate_receive_code() -> str:
 def get_or_create_receive_code():
     """Authenticated. Returns the caller's permanent receive code, creating
     one on first call. No expiry — this is meant to be shared indefinitely
-    as a QR code / link (see receive_code column comment in schema.sql)."""
+    as a QR code / link (see receive_code column comment in schema.sql).
+
+    Uses upsert (insert-if-missing) rather than a bare UPDATE: a `profiles`
+    row is NOT guaranteed to exist for every authenticated user (no signup
+    trigger creates one), and `.update().eq("id", user_id)` silently affects
+    zero rows when the row doesn't exist yet instead of raising — meaning a
+    code could be returned to the frontend that was never actually saved,
+    so /pay/<code> would later 404 with "invalid or no longer active" for
+    every payer who tried to use it.
+    """
     supabase = get_supabase()
     user_id = g.user_id
 
@@ -36,8 +45,8 @@ def get_or_create_receive_code():
     for _ in range(5):
         code = _generate_receive_code()
         try:
-            supabase.table("profiles").update({"receive_code": code}).eq(
-                "id", user_id
+            supabase.table("profiles").upsert(
+                {"id": user_id, "receive_code": code}, on_conflict="id"
             ).execute()
             return jsonify(receive_code=code), 200
         except Exception as exc:  # noqa: BLE001 — likely a unique-constraint collision, retry
