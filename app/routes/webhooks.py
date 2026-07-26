@@ -25,8 +25,9 @@ def _valid_signature(raw_body: bytes, signature: str) -> bool:
 @webhooks_bp.post("/flutterwave")
 def flutterwave_webhook():
     raw_body = request.get_data()
+    print("raw_body", raw_body)
     signature = request.headers.get("flutterwave-signature", "")
-
+    print("signature :", signature)
     if not _valid_signature(raw_body, signature):
         return jsonify(error="invalid_signature"), 401
 
@@ -34,6 +35,7 @@ def flutterwave_webhook():
     webhook_id = payload.get("id")
     event_type = payload.get("type")
     data = payload.get("data", {})
+    print("data payload :", data)
 
     if not webhook_id or not event_type:
         # Malformed but signed request — acknowledge so Flutterwave doesn't
