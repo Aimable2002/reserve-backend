@@ -72,8 +72,24 @@ class FlutterwaveClient:
         resp = requests.request(method, url, headers=headers, timeout=30, **kwargs)
         body = _safe_json(resp)
         if resp.status_code >= 400:
+            # Flutterwave v4 nests error detail under `error`, e.g.
+            # {"status": "failed", "error": {"type": ..., "code": ..., "message": ..., "validation_errors": [...]}}
+            # Older/other shapes sometimes use a top-level "message" instead, so fall back to that.
+            error_obj = body.get("error") if isinstance(body, dict) else None
+            message = None
+            if isinstance(error_obj, dict):
+                message = error_obj.get("message")
+                if not message and error_obj.get("validation_errors"):
+                    message = "; ".join(
+                        f"{e.get('field_name')}: {e.get('message')}" for e in error_obj["validation_errors"]
+                    )
+            if not message and isinstance(body, dict):
+                message = body.get("message")
+            if not message:
+                message = f"Flutterwave error {resp.status_code}"
+
             raise FlutterwaveError(
-                body.get("message") if isinstance(body, dict) else f"Flutterwave error {resp.status_code}",
+                message,
                 status_code=resp.status_code,
                 payload=body,
             )
