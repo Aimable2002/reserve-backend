@@ -54,7 +54,9 @@ def _debit_and_transfer(*, entry_kind: str, transfer_type: str):
                 "name": recipient.get("name"),
             },
         )
+        print("transfer : ", transfer)
     except FlutterwaveError as exc:
+        print("errror in  _debit_and_transfer", exc) 
         ledger.finalize_entry(
             reference=reference, account_type="wallet", reserve_id=None, status="failed"
         )
