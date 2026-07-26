@@ -49,7 +49,10 @@ def _debit_and_transfer(*, entry_kind: str, transfer_type: str):
             destination_currency=currency,
             amount_value=amount,
             transfer_type=transfer_type,
-            recipient={transfer_type: recipient[transfer_type]},
+            recipient={
+                transfer_type: recipient[transfer_type],
+                "name": recipient.get("name"),
+            },
         )
     except FlutterwaveError as exc:
         ledger.finalize_entry(
